@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Academy Assistant — локальный свод тестирования</title>
+  <style>
+    :root{
+      --bg:#f6f8fc; --card:#ffffff; --text:#172033; --muted:#667085; --line:#e5e7ef;
+      --brand:#1f6feb; --brand2:#0b5cad; --good:#118a4f; --bad:#c2410c; --warn:#b45309;
+      --shadow:0 14px 35px rgba(16,24,40,.08); --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#f6f8fc,#eef4ff);color:var(--text)}
+    header{padding:28px 32px 18px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+    h1{margin:0;font-size:28px;letter-spacing:-.02em}
+    .subtitle{color:var(--muted);margin-top:8px;max-width:880px;line-height:1.45}
+    .badge{background:#eaf2ff;color:#174ea6;border:1px solid #cfe1ff;border-radius:999px;padding:8px 12px;font-size:13px;white-space:nowrap}
+    main{padding:0 32px 40px;display:grid;grid-template-columns:330px 1fr;gap:20px}
+    .card{background:rgba(255,255,255,.88);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .panel{padding:18px}
+    .section-title{font-weight:800;font-size:15px;margin:0 0 12px}
+    .drop{border:2px dashed #b7c7e8;background:#f8fbff;border-radius:16px;padding:18px;text-align:center;cursor:pointer;transition:.15s}
+    .drop:hover,.drop.drag{border-color:var(--brand);background:#eef6ff}
+    .drop strong{display:block;margin-bottom:6px}
+    .small{font-size:12px;color:var(--muted);line-height:1.35}
+    input[type=file]{display:none}
+    label{font-size:12px;font-weight:700;color:#344054;margin-bottom:6px;display:block}
+    input,select,textarea{width:100%;border:1px solid #d0d5dd;border-radius:12px;padding:10px 12px;background:white;color:var(--text);font:inherit}
+    input:focus,select:focus,textarea:focus{outline:2px solid #cfe1ff;border-color:var(--brand)}
+    .field{margin-bottom:12px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;background:var(--brand);color:#fff;box-shadow:0 8px 18px rgba(31,111,235,.18)}
+    button.secondary{background:#fff;color:#1d2939;border:1px solid #d0d5dd;box-shadow:none}
+    button.ghost{background:transparent;color:var(--brand);box-shadow:none;padding:8px}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .tabs{display:flex;gap:8px;padding:10px;border-bottom:1px solid var(--line);overflow:auto}
+    .tab{background:#fff;color:#344054;border:1px solid var(--line);box-shadow:none;padding:9px 12px;border-radius:999px}
+    .tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .content{padding:18px}
+    .kpis{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:14px;margin-bottom:18px}
+    .kpi{padding:16px;border:1px solid var(--line);border-radius:16px;background:#fff}
+    .kpi .num{font-size:28px;font-weight:900;margin-top:4px}
+    .kpi .cap{font-size:12px;color:var(--muted);font-weight:700}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden}
+    th,td{padding:10px 12px;border-bottom:1px solid #eef0f5;text-align:left;font-size:13px;vertical-align:top}
+    th{background:#f8fafc;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:#475467;position:sticky;top:0;z-index:1}
+    .table-wrap{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
+    .status{display:inline-block;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:800}
+    .pass{background:#e7f7ef;color:#087443}.fail{background:#fff1eb;color:#b93815}.excl{background:#f2f4f7;color:#475467}
+    .bar{height:10px;background:#eef2f7;border-radius:999px;overflow:hidden;min-width:130px}
+    .bar span{display:block;height:100%;background:linear-gradient(90deg,#7aa7ff,#1f6feb);width:0}
+    .warn{background:#fff7e8;border:1px solid #fedf89;color:#93370d;padding:10px 12px;border-radius:12px;margin:12px 0;font-size:13px}
+    .ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;padding:10px 12px;border-radius:12px;margin:12px 0;font-size:13px}
+    .hidden{display:none!important}
+    .emailbox{min-height:360px;white-space:pre-wrap}
+    .footer-note{font-size:12px;color:var(--muted);margin-top:10px}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid #d0d5dd;background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;color:#475467;margin:4px 6px 0 0}
+    .rank-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+    .rank-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 10px 25px rgba(16,24,40,.05)}
+    .rank-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+    .rank-title{font-weight:900;font-size:15px;line-height:1.25}
+    .rank-place{width:34px;height:34px;border-radius:12px;background:#eef4ff;color:#174ea6;display:flex;align-items:center;justify-content:center;font-weight:900}
+    .rank-main{font-size:30px;font-weight:950;letter-spacing:-.03em;margin:6px 0}
+    .rank-sub{color:var(--muted);font-size:12px;font-weight:700}
+    .rank-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+    .stat-mini{background:#f8fafc;border:1px solid #eef0f5;border-radius:12px;padding:9px}
+    .stat-mini b{display:block;font-size:15px}
+    .stat-mini span{font-size:11px;color:var(--muted);font-weight:700}
+    .section-row{display:flex;align-items:end;justify-content:space-between;gap:14px;margin:22px 0 12px}
+    .section-row h3{margin:0;font-size:18px}
+    .section-row p{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .speed{background:#fff7ed;color:#9a3412}
+
+    .searchrow{display:grid;grid-template-columns:1fr 190px 190px;gap:10px;margin-bottom:12px}
+    .filter-panel{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr auto;gap:10px;align-items:end;margin:0 0 18px;padding:14px;background:#f8fbff;border:1px solid #d9e7ff;border-radius:16px}
+    .filter-panel .field{margin:0}
+    @media(max-width:900px){.filter-panel{grid-template-columns:1fr}}
+    @media(max-width:1100px){main{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:700px){header,main{padding-left:14px;padding-right:14px}.kpis,.grid2,.searchrow{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Academy Assistant</h1>
+    <div class="subtitle">Локальный свод результатов тестирования фронт-офиса: загрузка Excel/CSV, правила отсутствия, расчеты, группировки, экспорт и письмо руководителям. Ничего не отправляется в интернет.</div>
+  </div>
+  <div class="badge">100% локально • без API • без базы</div>
+</header>
+
+<main>
+  <aside class="card panel">
+    <p class="section-title">1. Загрузка файла</p>
+    <div id="drop" class="drop">
+      <strong>Перетащи файл сюда</strong>
+      <span class="small">или нажми для выбора .xlsx / .csv<br>.xls старого формата лучше сохранить как .xlsx</span>
+      <input id="file" type="file" accept=".xlsx,.csv,.xls">
+    </div>
+    <div id="fileInfo" class="footer-note"></div>
+
+    <div class="btns">
+      <button class="secondary" id="demoBtn">Загрузить демо</button>
+      <button class="ghost" id="clearBtn">Очистить</button>
+    </div>
+
+    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+
+    <p class="section-title">2. Настройки правил</p>
+    <div class="grid2">
+      <div class="field">
+        <label>Проходной балл</label>
+        <input id="threshold" type="number" min="0" max="100" value="70">
+      </div>
+      <div class="field">
+        <label>Месяц отчета</label>
+        <input id="reportMonth" type="month">
+      </div>
+    </div>
+    <div class="field">
+      <label>Пропуск без уважительной причины</label>
+      <select id="noReasonRule">
+        <option value="zero">Считать 0 баллов</option>
+        <option value="exclude_fail">Исключить из среднего, но отметить «не сдал»</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Уважительная причина без истории</label>
+      <select id="reasonNoHistoryRule">
+        <option value="threshold">Присвоить проходной балл</option>
+        <option value="exclude">Исключить из среднего</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Уважительная причина с историей</label>
+      <select disabled>
+        <option>Присвоить Средний_балл_история</option>
+      </select>
+      <div class="small">Это правило имеет приоритет над остальными.</div>
+    </div>
+
+    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+
+    <p class="section-title">3. Экспорт</p>
+    <div class="btns">
+      <button id="exportBtn" disabled>Скачать Excel</button>
+      <button class="secondary" id="reportHtmlBtn" disabled>Скачать HTML-отчет</button>
+      <button class="secondary" id="copyBtn" disabled>Скопировать письмо</button>
+    </div>
+    <div class="footer-note">Файл экспорта: <b>Свод_результатов_тестирования.xlsx</b></div>
+  </aside>
+
+  <section class="card">
+    <div class="tabs">
+      <button class="tab active" data-tab="dashboard">Дашборд</button>
+      <button class="tab" data-tab="departments">По подразделениям</button>
+      <button class="tab" data-tab="regions">По регионам</button>
+      <button class="tab" data-tab="employees">Сотрудники</button>
+      <button class="tab" data-tab="retrain">Переобучение</button>
+      <button class="tab" data-tab="email">Письмо</button>
+    </div>
+
+    <div class="content">
+      <div id="empty" class="warn">Загрузи файл или нажми «Загрузить демо». Поддерживает твой формат: Имя пользователя, Подразделение, Должность, Офис, Статус, Прогресс (%), Дата и время начала.</div>
+
+      <div id="dashboard" class="tabpane">
+        <div id="alerts"></div>
+        <div class="kpis">
+          <div class="kpi"><div class="cap">Всего сотрудников</div><div id="kpiTotal" class="num">—</div></div>
+          <div class="kpi"><div class="cap">Средний балл</div><div id="kpiAvg" class="num">—</div></div>
+          <div class="kpi"><div class="cap">% прошедших порог</div><div id="kpiPass" class="num">—</div></div>
+          <div class="kpi"><div class="cap">Исключены из среднего</div><div id="kpiExcl" class="num">—</div></div>
+        </div>
+        <div id="summaryText" class="ok hidden"></div>
+        <div class="section-row">
+          <div>
+            <h3>Лучшие подразделения по среднему результату</h3>
+            <p>Рейтинг по среднему проценту прохождения теста</p>
+          </div>
+        </div>
+        <div id="topDeps"></div>
+
+        <div class="section-row">
+          <div>
+            <h3>Лидеры по скорости прохождения тестов</h3>
+            <p>Рейтинг по среднему затраченному времени: чем меньше время, тем выше место</p>
+          </div>
+        </div>
+        <div id="speedDeps"></div>
+
+        <div class="section-row">
+          <div>
+            <h3>Подразделения, требующие внимания</h3>
+            <p>Низкий средний результат или результат рядом с проходным порогом</p>
+          </div>
+        </div>
+        <div id="lowDeps"></div>
+      </div>
+
+      <div id="departments" class="tabpane hidden">
+        <div id="deptTable"></div>
+      </div>
+      <div id="regions" class="tabpane hidden">
+        <div id="regionTable"></div>
+      </div>
+      <div id="employees" class="tabpane hidden">
+        <div class="searchrow">
+          <input id="search" placeholder="Поиск по ФИО, подразделению или региону">
+          <select id="statusFilter">
+            <option value="">Все статусы</option>
+            <option value="Сдал">Сдал</option>
+            <option value="Не сдал">Не сдал</option>
+            <option value="Исключён из среднего">Исключён из среднего</option>
+          </select>
+          <select id="deptFilter"><option value="">Все подразделения</option></select>
+        </div>
+        <div id="employeeTable"></div>
+      </div>
+      <div id="retrain" class="tabpane hidden">
+        <div class="warn">В список попадают сотрудники со статусом «не сдал». Исключённые из среднего по уважительной причине сюда не попадают.</div>
+        <div id="retrainTable"></div>
+      </div>
+      <div id="email" class="tabpane hidden">
+        <label>Черновик письма руководителям</label>
+        <textarea id="emailText" class="emailbox"></textarea>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const state = { raw: [], processed: [], deps: [], regs: [], columns: {}, fileName: '' };
+
+function norm(s){ return String(s ?? '').trim().toLowerCase().replace(/\s+/g,'_').replace(/ё/g,'е'); }
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function num(v){ if(v===null||v===undefined||String(v).trim()==='') return null; const n=parseFloat(String(v).replace(',','.').replace('%','')); return Number.isFinite(n)?n:null; }
+function avg(arr){ const a=arr.filter(v=>Number.isFinite(v)); return a.length?a.reduce((x,y)=>x+y,0)/a.length:null; }
+function pct(n,d){ return d? n/d*100 : 0; }
+function round(v,d=1){ return Number.isFinite(v)? Number(v).toFixed(d).replace('.',',') : '—'; }
+
+function parseDuration(v){
+  if(v===null || v===undefined) return null;
+  let s = String(v).trim().toLowerCase();
+  if(!s) return null;
+  // Excel иногда хранит время как долю суток: 0,25 = 6 часов.
+  const rawNum = parseFloat(s.replace(',','.'));
+  if(Number.isFinite(rawNum) && !/[а-яa-z:]/i.test(s)){
+    if(rawNum > 0 && rawNum < 1) return rawNum * 24 * 60;
+    return rawNum;
+  }
+  let total = 0;
+  const h = /(\d+(?:[.,]\d+)?)\s*(ч|час|часа|часов|h|hour)/.exec(s);
+  const m = /(\d+(?:[.,]\d+)?)\s*(м|мин|минут|минуты|min|minute)/.exec(s);
+  const sec = /(\d+(?:[.,]\d+)?)\s*(с|сек|секунд|seconds|sec)/.exec(s);
+  if(h) total += parseFloat(h[1].replace(',','.')) * 60;
+  if(m) total += parseFloat(m[1].replace(',','.'));
+  if(sec) total += parseFloat(sec[1].replace(',','.')) / 60;
+  if(total > 0) return total;
+  // Форматы 01:23:45 или 23:45
+  const parts = s.split(':').map(x=>parseFloat(x.replace(',','.')));
+  if(parts.length===3 && parts.every(Number.isFinite)) return parts[0]*60 + parts[1] + parts[2]/60;
+  if(parts.length===2 && parts.every(Number.isFinite)) return parts[0]*60 + parts[1];
+  return null;
+}
+function fmtDuration(mins){
+  if(!Number.isFinite(mins)) return '—';
+  const h = Math.floor(mins/60);
+  const m = Math.round(mins%60);
+  if(h>0) return `${h} ч ${m} мин`;
+  return `${m} мин`;
+}
+
+
+const synonyms = {
+  fio:['фио','ф_и_о','сотрудник','работник','имя','имя_пользователя','пользователь','full_name','name','user_name'],
+  department:['подразделение','подразделение_1','департамент','отдел','служба','цп','цкс','department'],
+  region:['регион','область','филиал','город','офис','office','region'],
+  score:['балл','баллы','оценка','результат','прогресс_(%)','прогресс_%','прогресс','progress','progress_(%)','score','result'],
+  reason:['причина_отсутствия','причина','уважительная_причина','отсутствие','reason'],
+  testStatus:['статус','status'],
+  position:['должность','position','job_title'],
+  startedAt:['дата_и_время_начала','дата_начала','начало','started_at','start_time'],
+  spentTime:['затраченное_время','затраченное_время_на_прохождение','время','длительность','duration','spent_time','time_spent'],
+  history:['средний_балл_история','история','средний_балл','предыдущий_балл','history']
+};
+
+function detectColumns(headers){
+  const map = {};
+  const normalized = headers.map(h=>[h,norm(h)]);
+  for(const key in synonyms){
+    const found = normalized.find(([h,n]) => synonyms[key].includes(n));
+    if(found) map[key]=found[0];
+  }
+  // Если регион не найден, используем Офис как регион/локацию.
+  if(!map.region){
+    const office = normalized.find(([h,n]) => ['офис','office'].includes(n));
+    if(office) map.region = office[0];
+  }
+  return map;
+}
+
+
+function getFilteredRows(){
+  const q = norm($('globalSearch')?.value || '');
+  const dep = $('globalDept')?.value || '';
+  const reg = $('globalRegion')?.value || '';
+  const st = $('globalStatus')?.value || '';
+  return state.processed.filter(r=>{
+    const text = norm([r.ФИО,r.Подразделение,r.Регион,r.Должность,r.Статус_источника].join(' '));
+    return (!q || text.includes(q)) && (!dep || r.Подразделение===dep) && (!reg || r.Регион===reg) && (!st || r.Статус===st);
+  });
+}
+function aggregateRows(rows, field){
+  const groups = new Map();
+  for(const r of rows){
+    const key = String(r[field] || 'Не указано');
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  }
+  const threshold = num($('threshold').value) ?? 70;
+  return [...groups.entries()].map(([name, groupRows])=>{
+    const included = groupRows.filter(r=>r.В_среднем==='Да' && Number.isFinite(r.Итоговый_балл));
+    const passed = groupRows.filter(r=>r.Статус==='Сдал').length;
+    const failed = groupRows.filter(r=>r.Статус==='Не сдал').length;
+    const excluded = groupRows.filter(r=>r.Статус==='Исключён из среднего').length;
+    const a = avg(included.map(r=>r.Итоговый_балл));
+    const speedRows = groupRows.filter(r=>Number.isFinite(r.Затрачено_минут) && r.Затрачено_минут > 0);
+    const speed = avg(speedRows.map(r=>r.Затрачено_минут));
+    return {Название:name, Количество:groupRows.length, Учитываются:included.length, Средний_балл:a, Среднее_время_мин:speed, Есть_время:speedRows.length, Прошли:passed, Не_сдали:failed, Исключены:excluded, Процент_прохождения:pct(passed, groupRows.length), Отклонение_от_порога:Number.isFinite(a)?a-threshold:null};
+  }).sort((a,b)=>(b.Средний_балл??-1)-(a.Средний_балл??-1));
+}
+
+function processData(){
+  if(!state.raw.length) return;
+  const threshold = num($('threshold').value) ?? 70;
+  const noReason = $('noReasonRule').value;
+  const reasonNoHist = $('reasonNoHistoryRule').value;
+  const c = state.columns;
+  state.processed = state.raw.map((r,idx)=>{
+    const fio = r[c.fio] ?? '';
+    const department = r[c.department] ?? '';
+    const region = r[c.region] ?? '';
+    const score = num(r[c.score]);
+    const reason = String(r[c.reason] ?? '').trim();
+    const history = num(r[c.history]);
+    let finalScore=null, status='', note='', include=true;
+    if(score!==null){
+      finalScore=score; status=score>=threshold?'Сдал':'Не сдал'; note='Использован фактический балл';
+    } else if(reason && history!==null){
+      finalScore=history; status=history>=threshold?'Сдал':'Не сдал'; note='Уважительная причина: применён исторический средний балл';
+    } else if(reason && history===null){
+      if(reasonNoHist==='threshold'){ finalScore=threshold; status='Сдал'; note='Уважительная причина: присвоен проходной балл'; }
+      else { include=false; status='Исключён из среднего'; note='Уважительная причина: исключён из расчёта'; }
+    } else {
+      if(noReason==='zero'){ finalScore=0; status='Не сдал'; note='Нет балла и нет уважительной причины: присвоено 0'; }
+      else { include=false; status='Не сдал'; note='Нет балла и нет уважительной причины: исключён из среднего, отмечен как не сдал'; }
+    }
+    return {"№":idx+1, "ФИО":fio, "Подразделение":department, "Регион":region, "Балл_исходный":score, "Причина_отсутствия":reason, "Средний_балл_история":history, "Итоговый_балл":finalScore, "Статус":status, "В_среднем":include?'Да':'Нет', "Примечание":note};
+  });
+  state.deps = aggregate('Подразделение');
+  state.regs = aggregate('Регион');
+  renderAll();
+}
+
+function aggregate(field){
+  const groups = new Map();
+  for(const r of state.processed){
+    const key = String(r[field] || 'Не указано');
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  }
+  const threshold = num($('threshold').value) ?? 70;
+  return [...groups.entries()].map(([name, rows])=>{
+    const included = rows.filter(r=>r.В_среднем==='Да' && Number.isFinite(r.Итоговый_балл));
+    const passed = rows.filter(r=>r.Статус==='Сдал').length;
+    const failed = rows.filter(r=>r.Статус==='Не сдал').length;
+    const excluded = rows.filter(r=>r.Статус==='Исключён из среднего').length;
+    const a = avg(included.map(r=>r.Итоговый_балл));
+    const speedRows = rows.filter(r=>Number.isFinite(r.Затрачено_минут) && r.Затрачено_минут > 0);
+    const speed = avg(speedRows.map(r=>r.Затрачено_минут));
+    return {Название:name, Количество:rows.length, Учитываются:included.length, Средний_балл:a, Среднее_время_мин: speed, Есть_время: speedRows.length, Прошли:passed, Не_сдали:failed, Исключены:excluded, Процент_прохождения:pct(passed, rows.length), Отклонение_от_порога:Number.isFinite(a)?a-threshold:null};
+  }).sort((a,b)=>(b.Средний_балл??-1)-(a.Средний_балл??-1));
+}
+
+function renderAll(){
+  $('empty').classList.toggle('hidden', !!state.processed.length);
+  $('exportBtn').disabled = !state.processed.length;
+  $('copyBtn').disabled = !state.processed.length;
+  const filtered = getFilteredRows();
+  renderDashboard(); renderAgg('deptTable', aggregateRows(filtered, 'Подразделение')); renderAgg('regionTable', aggregateRows(filtered, 'Регион')); renderEmployeeTable(); renderRetrain(); renderEmail(); updateFilters();
+}
+
+function renderDashboard(){
+  const rows = getFilteredRows();
+  const depsFiltered = aggregateRows(rows, 'Подразделение');
+  const regsFiltered = aggregateRows(rows, 'Регион');
+  const included = rows.filter(r=>r.В_среднем==='Да' && Number.isFinite(r.Итоговый_балл));
+  const passed = rows.filter(r=>r.Статус==='Сдал').length;
+  const excluded = rows.filter(r=>r.Статус==='Исключён из среднего').length;
+  const a = avg(included.map(r=>r.Итоговый_балл));
+  $('kpiTotal').textContent = rows.length || '—';
+  $('kpiAvg').textContent = round(a);
+  $('kpiPass').textContent = rows.length ? round(pct(passed, rows.length),1)+'%' : '—';
+  $('kpiExcl').textContent = excluded;
+  const threshold = num($('threshold').value) ?? 70;
+  $('summaryText').classList.toggle('hidden', !rows.length);
+  $('summaryText').innerHTML = rows.length ? `Средний балл по компании: <b>${round(a)}</b>. Проходной порог: <b>${threshold}</b>. Порог прошли <b>${passed}</b> из <b>${rows.length}</b> сотрудников.` : '';
+  const top = depsFiltered.filter(x=>Number.isFinite(x.Средний_балл)).slice(0,5);
+  const low = [...depsFiltered].filter(x=>Number.isFinite(x.Средний_балл)).sort((a,b)=>a.Средний_балл-b.Средний_балл).slice(0,5);
+  const speed = [...depsFiltered].filter(x=>Number.isFinite(x.Среднее_время_мин)).sort((a,b)=>a.Среднее_время_мин-b.Среднее_время_мин).slice(0,5);
+  $('topDeps').innerHTML = rankCards(top, 'score');
+  $('speedDeps').innerHTML = rankCards(speed, 'speed');
+  $('lowDeps').innerHTML = rankCards(low, 'attention');
+  const missing = [];
+  for(const key of ['fio','department','region']) if(!state.columns[key]) missing.push(key);
+  if(!state.columns.score) missing.push('Прогресс (%) / Балл');
+  $('alerts').innerHTML = missing.length ? `<div class="warn">Не найдены обязательные колонки: ${missing.join(', ')}. Проверь названия во входном файле.</div>` : '';
+}
+
+function rankCards(arr, mode='score'){
+  if(!arr.length) return '<div class="small">Нет данных для рейтинга</div>';
+  return `<div class="rank-grid">` + arr.map((x,i)=>{
+    const isSpeed = mode === 'speed';
+    const main = isSpeed ? fmtDuration(x.Среднее_время_мин) : round(x.Средний_балл) + ' %';
+    const sub = isSpeed ? `Среднее время • данных: ${x.Есть_время}` : 'Средний результат';
+    const barWidth = isSpeed ? Math.max(8, Math.min(100, 100 - (x.Среднее_время_мин || 0))) : Math.max(0, Math.min(100, x.Средний_балл || 0));
+    const placeClass = isSpeed ? 'rank-place speed' : 'rank-place';
+    return `<div class="rank-card">
+      <div class="rank-head">
+        <div>
+          <div class="rank-title">${esc(x.Название)}</div>
+          <div class="rank-sub">${sub}</div>
+        </div>
+        <div class="${placeClass}">#${i+1}</div>
+      </div>
+      <div class="rank-main">${main}</div>
+      <div class="bar"><span style="width:${barWidth}%"></span></div>
+      <div class="rank-stats">
+        <div class="stat-mini"><b>${x.Количество}</b><span>сотрудников</span></div>
+        <div class="stat-mini"><b>${x.Прошли}</b><span>прошли</span></div>
+        <div class="stat-mini"><b>${x.Не_сдали}</b><span>не прошли</span></div>
+        <div class="stat-mini"><b>${round(x.Процент_прохождения)}%</b><span>успешность</span></div>
+      </div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+function renderAgg(target, data){
+  const threshold = num($('threshold').value) ?? 70;
+  const rows = data.map(x=>{
+    const width = Math.max(0, Math.min(100, x.Средний_балл ?? 0));
+    const cls = (x.Средний_балл ?? 0) >= threshold ? 'pass' : 'fail';
+    return `<tr>
+      <td><b>${esc(x.Название)}</b></td><td>${x.Количество}</td><td>${x.Учитываются}</td>
+      <td><b>${round(x.Средний_балл)}</b><div class="bar"><span style="width:${width}%"></span></div></td>
+      <td>${fmtDuration(x.Среднее_время_мин)}</td><td>${round(x.Процент_прохождения)}%</td><td>${x.Прошли}</td><td>${x.Не_сдали}</td><td>${x.Исключены}</td>
+      <td><span class="status ${cls}">${round(x.Отклонение_от_порога)}</span></td>
+    </tr>`;
+  }).join('');
+  $(target).innerHTML = `<div class="table-wrap"><table><thead><tr><th>Название</th><th>Всего</th><th>В среднем</th><th>Средний балл</th><th>Среднее время</th><th>% прошли</th><th>Сдали</th><th>Не сдали</th><th>Исключены</th><th>± порог</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function fillSelect(id, values, allLabel='Все'){
+  const el = $(id); if(!el) return;
+  const current = el.value;
+  el.innerHTML = `<option value="">${allLabel}</option>` + values.map(v=>`<option ${v===current?'selected':''}>${esc(v)}</option>`).join('');
+}
+function updateFilters(){
+  const deps = [...new Set(state.processed.map(r=>r.Подразделение).filter(Boolean))].sort();
+  const regs = [...new Set(state.processed.map(r=>r.Регион).filter(Boolean))].sort();
+  fillSelect('deptFilter', deps, 'Все подразделения');
+  fillSelect('globalDept', deps, 'Все');
+  fillSelect('globalRegion', regs, 'Все');
+}
+
+function renderEmployeeTable(){
+  const q = norm($('search').value);
+  const st = $('statusFilter').value;
+  const dep = $('deptFilter').value;
+  let rows = getFilteredRows().filter(r=>{
+    const text = norm([r.ФИО,r.Подразделение,r.Регион].join(' '));
+    return (!q || text.includes(q)) && (!st || r.Статус===st) && (!dep || r.Подразделение===dep);
+  });
+  $('employeeTable').innerHTML = employeeHTML(rows);
+}
+function statusClass(s){ return s==='Сдал'?'pass':s==='Не сдал'?'fail':'excl'; }
+function employeeHTML(rows){
+  return `<div class="table-wrap"><table><thead><tr><th>№</th><th>ФИО</th><th>Подразделение</th><th>Регион</th><th>Итоговый балл</th><th>Статус</th><th>В среднем</th><th>Примечание</th></tr></thead><tbody>`+
+    rows.map(r=>`<tr><td>${r["№"]}</td><td><b>${esc(r.ФИО)}</b></td><td>${esc(r.Подразделение)}</td><td>${esc(r.Регион)}</td><td>${round(r.Итоговый_балл)}</td><td><span class="status ${statusClass(r.Статус)}">${r.Статус}</span></td><td>${r.В_среднем}</td><td>${esc(r.Примечание)}</td></tr>`).join('')+
+    `</tbody></table></div>`;
+}
+function renderRetrain(){ $('retrainTable').innerHTML = employeeHTML(getFilteredRows().filter(r=>r.Статус==='Не сдал')); }
+
+function renderEmail(){
+  if(!state.processed.length){ $('emailText').value=''; return; }
+  const rows=getFilteredRows(), included=rows.filter(r=>r.В_среднем==='Да'&&Number.isFinite(r.Итоговый_балл));
+  const passed=rows.filter(r=>r.Статус==='Сдал').length, excluded=rows.filter(r=>r.Статус==='Исключён из среднего').length;
+  const period = $('reportMonth').value ? new Date($('reportMonth').value+'-01').toLocaleDateString('ru-RU',{month:'long',year:'numeric'}) : new Date().toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
+  const depLines = aggregateRows(rows, 'Подразделение').map(x=>`- ${x.Название}: средний балл ${round(x.Средний_балл)}, прошли порог ${round(x.Процент_прохождения)}% (${x.Прошли}/${x.Количество})`).join('\n');
+  const regLines = aggregateRows(rows, 'Регион').map(x=>`- ${x.Название}: средний балл ${round(x.Средний_балл)}, прошли порог ${round(x.Процент_прохождения)}% (${x.Прошли}/${x.Количество})`).join('\n');
+  const subject = `Свод результатов тестирования фронт-офиса за ${period}`;
+  $('emailText').value =
+`${subject}
+
+Добрый день, коллеги!
+
+Направляю свод результатов ежемесячного тестирования сотрудников фронт-офиса за ${period}.
+
+Общие показатели:
+- всего сотрудников в своде: ${rows.length};
+- средний балл по компании: ${round(avg(included.map(r=>r.Итоговый_балл)))};
+- проходной балл: ${$('threshold').value};
+- прошли порог: ${passed} сотрудников (${round(pct(passed, rows.length))}%);
+- не прошли порог: ${rows.filter(r=>r.Статус==='Не сдал').length};
+- исключены из расчёта среднего: ${excluded}.
+
+Разбивка по подразделениям:
+${depLines}
+
+Разбивка по регионам:
+${regLines}
+
+Прошу руководителей обратить внимание на сотрудников, не прошедших порог, и при необходимости организовать повторное обучение/консультацию.
+
+С уважением,`;
+}
+
+// Делает повторяющиеся заголовки уникальными: Подразделение, Подразделение_2 и т.д.
+function uniqueHeaders(headers){
+  const seen = {};
+  return headers.map((h, i)=>{
+    let base = String(h || ('Колонка_'+(i+1))).trim() || ('Колонка_'+(i+1));
+    const key = norm(base);
+    seen[key] = (seen[key] || 0) + 1;
+    return seen[key] === 1 ? base : base + '_' + seen[key];
+  });
+}
+
+// CSV
+function parseCSV(text){
+  const rows=[]; let row=[], cell='', q=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i], next=text[i+1];
+    if(ch==='"' && q && next==='"'){ cell+='"'; i++; }
+    else if(ch==='"'){ q=!q; }
+    else if(ch===',' && !q){ row.push(cell); cell=''; }
+    else if((ch==='\n'||ch==='\r') && !q){ if(ch==='\r'&&next==='\n') i++; row.push(cell); if(row.some(x=>String(x).trim()!=='')) rows.push(row); row=[]; cell=''; }
+    else cell+=ch;
+  }
+  row.push(cell); if(row.some(x=>String(x).trim()!=='')) rows.push(row);
+  const headers = uniqueHeaders(rows.shift() || []);
+  return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h, r[i] ?? ''])));
+}
+
+// XLSX minimal reader
+async function parseXLSX(file){
+  const buf = await file.arrayBuffer();
+  const entries = await unzip(new Uint8Array(buf));
+  const text = p => new TextDecoder().decode(entries[p]);
+  const workbook = text('xl/workbook.xml');
+  const rels = text('xl/_rels/workbook.xml.rels');
+  const sheetRel = /<sheet[^>]*r:id="([^"]+)"/.exec(workbook)?.[1];
+  const relRe = new RegExp('<Relationship[^>]*Id="'+sheetRel+'"[^>]*Target="([^"]+)"');
+  let target = relRe.exec(rels)?.[1] || 'worksheets/sheet1.xml';
+  if(!target.startsWith('xl/')) target = 'xl/' + target.replace(/^\//,'');
+  const sheet = text(target);
+  let shared=[];
+  if(entries['xl/sharedStrings.xml']){
+    const ss=text('xl/sharedStrings.xml');
+    shared=[...ss.matchAll(/<si>([\s\S]*?)<\/si>/g)].map(m=>decodeXML([...m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x=>x[1]).join('')));
+  }
+  const rows=[];
+  for(const rm of sheet.matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)){
+    const cells=[];
+    for(const cm of rm[1].matchAll(/<c([^>]*)>([\s\S]*?)<\/c>/g)){
+      const attrs=cm[1], body=cm[2];
+      const ref=/r="([A-Z]+)(\d+)"/.exec(attrs)?.[1] || '';
+      const col=colNum(ref);
+      const type=/t="([^"]+)"/.exec(attrs)?.[1];
+      let v=/<v>([\s\S]*?)<\/v>/.exec(body)?.[1] ?? '';
+      if(type==='s') v=shared[parseInt(v,10)] ?? '';
+      else if(type==='inlineStr') v=decodeXML(/<t[^>]*>([\s\S]*?)<\/t>/.exec(body)?.[1] ?? '');
+      else v=decodeXML(v);
+      cells[col]=v;
+    }
+    rows.push(cells);
+  }
+  const headers=uniqueHeaders((rows.shift()||[]).map(x=>String(x||'').trim()));
+  return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h, r[i] ?? ''])));
+}
+function colNum(s){ let n=0; for(const ch of s){ n=n*26+ch.charCodeAt(0)-64; } return n-1; }
+function decodeXML(s){ const d=document.createElement('textarea'); d.innerHTML=String(s??'').replace(/_x000D_/g,''); return d.value; }
+
+async function unzip(bytes){
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let eocd=-1; for(let i=bytes.length-22;i>=0 && i>bytes.length-66000;i--){ if(dv.getUint32(i,true)===0x06054b50){ eocd=i; break; } }
+  if(eocd<0) throw new Error('Не удалось прочитать XLSX: не найден каталог ZIP.');
+  const count=dv.getUint16(eocd+10,true), cdOffset=dv.getUint32(eocd+16,true);
+  const out={}; let off=cdOffset;
+  for(let i=0;i<count;i++){
+    if(dv.getUint32(off,true)!==0x02014b50) break;
+    const method=dv.getUint16(off+10,true), compSize=dv.getUint32(off+20,true), uncompSize=dv.getUint32(off+24,true);
+    const nameLen=dv.getUint16(off+28,true), extraLen=dv.getUint16(off+30,true), commentLen=dv.getUint16(off+32,true), localOff=dv.getUint32(off+42,true);
+    const name=new TextDecoder().decode(bytes.slice(off+46,off+46+nameLen));
+    const lfNameLen=dv.getUint16(localOff+26,true), lfExtraLen=dv.getUint16(localOff+28,true);
+    const dataStart=localOff+30+lfNameLen+lfExtraLen;
+    const comp=bytes.slice(dataStart,dataStart+compSize);
+    let data;
+    if(method===0) data=comp;
+    else if(method===8) data=await inflateRaw(comp);
+    else throw new Error('Метод сжатия XLSX не поддерживается: '+method);
+    out[name]=data;
+    off += 46+nameLen+extraLen+commentLen;
+  }
+  return out;
+}
+async function inflateRaw(data){
+  if(!('DecompressionStream' in window)) throw new Error('Ваш браузер не поддерживает распаковку XLSX. Используйте Chrome/Edge или загрузите CSV.');
+  try{
+    const ds = new DecompressionStream('deflate-raw');
+    const stream = new Blob([data]).stream().pipeThrough(ds);
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }catch(e){
+    const ds = new DecompressionStream('deflate');
+    const stream = new Blob([data]).stream().pipeThrough(ds);
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+}
+
+async function handleFile(file){
+  try{
+    $('fileInfo').textContent = `Файл: ${file.name}`;
+    let rows;
+    if(file.name.toLowerCase().endsWith('.csv')){
+      rows = parseCSV(await file.text());
+    } else if(file.name.toLowerCase().endsWith('.xlsx')){
+      rows = await parseXLSX(file);
+    } else if(file.name.toLowerCase().endsWith('.xls')){
+      throw new Error('Старый формат .xls не читается в полностью локальном HTML без внешней библиотеки. Сохрани файл как .xlsx или .csv.');
+    } else throw new Error('Неподдерживаемый формат файла.');
+    loadRows(rows, file.name);
+  }catch(e){ alert(e.message); console.error(e); }
+}
+function loadRows(rows, name=''){
+  state.raw = rows.filter(r=>Object.values(r).some(v=>String(v).trim()!==''));
+  state.fileName = name;
+  const headers = state.raw[0] ? Object.keys(state.raw[0]) : [];
+  state.columns = detectColumns(headers);
+  processData();
+}
+
+
+function exportHtmlReport(){
+  const rows = getFilteredRows();
+  if(!rows.length){ alert('Нет данных для отчета с текущими фильтрами.'); return; }
+  const payload = JSON.stringify(rows).replace(/</g,'\\u003c');
+  const filters = {
+    search: $('globalSearch').value || '',
+    department: $('globalDept').value || '',
+    region: $('globalRegion').value || '',
+    status: $('globalStatus').value || '',
+    threshold: $('threshold').value || '70',
+    month: $('reportMonth').value || ''
+  };
+  let doc = document.documentElement.outerHTML;
+  doc = doc.replace('</body>', `<script>window.__EMBEDDED_ROWS__=${payload};window.__EMBEDDED_FILTERS__=${JSON.stringify(filters).replace(/</g,'\\u003c')};<\/script></body>`);
+  const blob = new Blob(['<!doctype html>\n' + doc], {type:'text/html;charset=utf-8'});
+  const namePart = (filters.department || filters.region || 'отчет').replace(/[\\/:*?"<>|]+/g,'_');
+  downloadBlob(blob, `Свод_тестирования_${namePart}.html`);
+}
+
+// Export XLSX as uncompressed zip
+function exportXLSX(){
+  const sheets = {
+    'Результаты': getFilteredRows(),
+    'По подразделениям': aggregateRows(getFilteredRows(), 'Подразделение'),
+    'По регионам': aggregateRows(getFilteredRows(), 'Регион')
+  };
+  const files = makeXLSXFiles(sheets);
+  const blob = new Blob([zipStore(files)], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  downloadBlob(blob,'Свод_результатов_тестирования.xlsx');
+}
+function makeXLSXFiles(sheets){
+  const names=Object.keys(sheets);
+  const files={};
+  files['[Content_Types].xml'] = `<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${names.map((n,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`;
+  files['_rels/.rels'] = `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
+  files['xl/workbook.xml'] = `<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${names.map((n,i)=>`<sheet name="${xml(n).slice(0,31)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`;
+  files['xl/_rels/workbook.xml.rels'] = `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${names.map((n,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}</Relationships>`;
+  names.forEach((name,i)=>files[`xl/worksheets/sheet${i+1}.xml`]=sheetXML(sheets[name]));
+  return files;
+}
+function sheetXML(rows){
+  const headers = rows[0]?Object.keys(rows[0]):[];
+  const all=[headers,...rows.map(r=>headers.map(h=>r[h]))];
+  return `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${all.map((row,ri)=>`<row r="${ri+1}">${row.map((v,ci)=>cellXML(ri+1,ci,v)).join('')}</row>`).join('')}</sheetData></worksheet>`;
+}
+function cellXML(r,c,v){
+  const ref=colName(c)+(r);
+  if(typeof v==='number' && Number.isFinite(v)) return `<c r="${ref}"><v>${v}</v></c>`;
+  return `<c r="${ref}" t="inlineStr"><is><t>${xml(v)}</t></is></c>`;
+}
+function colName(n){let s='';n++;while(n){let m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
+function xml(v){ return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[m])); }
+function zipStore(files){
+  const enc=new TextEncoder(), chunks=[], central=[]; let offset=0;
+  for(const [name,content] of Object.entries(files)){
+    const nameB=enc.encode(name), data=enc.encode(content), crc=crc32(data), size=data.length;
+    const local=new Uint8Array(30+nameB.length); const dv=new DataView(local.buffer);
+    dv.setUint32(0,0x04034b50,true); dv.setUint16(4,20,true); dv.setUint16(8,0,true); dv.setUint32(14,crc,true); dv.setUint32(18,size,true); dv.setUint32(22,size,true); dv.setUint16(26,nameB.length,true); local.set(nameB,30);
+    chunks.push(local,data);
+    const cen=new Uint8Array(46+nameB.length); const cdv=new DataView(cen.buffer);
+    cdv.setUint32(0,0x02014b50,true); cdv.setUint16(4,20,true); cdv.setUint16(6,20,true); cdv.setUint32(16,crc,true); cdv.setUint32(20,size,true); cdv.setUint32(24,size,true); cdv.setUint16(28,nameB.length,true); cdv.setUint32(42,offset,true); cen.set(nameB,46);
+    central.push(cen); offset += local.length+data.length;
+  }
+  const cdOffset=offset, cdSize=central.reduce((s,x)=>s+x.length,0);
+  chunks.push(...central);
+  const end=new Uint8Array(22); const edv=new DataView(end.buffer);
+  edv.setUint32(0,0x06054b50,true); edv.setUint16(8,central.length,true); edv.setUint16(10,central.length,true); edv.setUint32(12,cdSize,true); edv.setUint32(16,cdOffset,true);
+  chunks.push(end); return new Blob(chunks);
+}
+function crc32(data){ let c=~0; for(let i=0;i<data.length;i++){ c^=data[i]; for(let k=0;k<8;k++) c=(c>>>1)^(0xedb88320&-(c&1)); } return ~c>>>0; }
+function downloadBlob(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+
+// Demo
+function loadDemo(){
+  const deps=['ЦОК Алматы','ЦОК Астана','ЦОК Костанай','ЦОК Шымкент','ЦОК Караганда'];
+  const offices=['Алматы','Астана','Костанай','Шымкент','Караганда'];
+  const positions=['Оператор','Специалист по продажам','Менеджер фронт-офиса'];
+  const statuses=['Завершено','В процессе','Не начато'];
+  const rows=[];
+  for(let i=1;i<=60;i++){
+    const st = statuses[Math.floor(Math.random()*statuses.length)];
+    let progress = st==='Не начато' ? '' : Math.round(35+Math.random()*65);
+    rows.push({
+      'Имя пользователя':'Сотрудник '+i,
+      'Подразделение':deps[i%deps.length],
+      'Подразделение_2':'Фронт-офис',
+      'Должность':positions[i%positions.length],
+      'Офис':offices[i%offices.length],
+      'Статус':st,
+      'Прогресс (%)':progress,
+      'Дата и время начала':'2026-07-'+String((i%28)+1).padStart(2,'0')+' 09:00',
+      'Затраченное время': st==='Не начато' ? '' : (Math.floor(10+Math.random()*50)+' мин')
+    });
+  }
+  loadRows(rows,'demo.csv'); $('fileInfo').textContent='Загружены демонстрационные данные в формате вашей выгрузки';
+}
+
+// Events
+$('drop').onclick=()=>$('file').click();
+$('drop').ondragover=e=>{e.preventDefault();$('drop').classList.add('drag')};
+$('drop').ondragleave=()=>$('drop').classList.remove('drag');
+$('drop').ondrop=e=>{e.preventDefault();$('drop').classList.remove('drag'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); };
+$('file').onchange=e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); };
+['threshold','noReasonRule','reasonNoHistoryRule','reportMonth'].forEach(id=>$(id).addEventListener('input', processData));
+$('search').addEventListener('input', renderEmployeeTable);
+$('statusFilter').addEventListener('change', renderEmployeeTable);
+$('deptFilter').addEventListener('change', renderEmployeeTable);
+$('exportBtn').onclick=exportXLSX;
+$('reportHtmlBtn').onclick=exportHtmlReport;
+['globalSearch','globalDept','globalRegion','globalStatus'].forEach(id=>$(id).addEventListener('input', renderAll));
+$('resetFilters').onclick=()=>{ $('globalSearch').value=''; $('globalDept').value=''; $('globalRegion').value=''; $('globalStatus').value=''; renderAll(); };
+$('copyBtn').onclick=async()=>{ await navigator.clipboard.writeText($('emailText').value); alert('Письмо скопировано.'); };
+$('demoBtn').onclick=loadDemo;
+$('clearBtn').onclick=()=>{ state.raw=[]; state.processed=[]; state.deps=[]; state.regs=[]; $('fileInfo').textContent=''; renderAll(); };
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  document.querySelectorAll('.tabpane').forEach(x=>x.classList.add('hidden')); $(b.dataset.tab).classList.remove('hidden');
+});
+(function initMonth(){ const d=new Date(); $('reportMonth').value = d.toISOString().slice(0,7); })();
+(function loadEmbedded(){
+  if(window.__EMBEDDED_ROWS__ && Array.isArray(window.__EMBEDDED_ROWS__)){
+    state.processed = window.__EMBEDDED_ROWS__;
+    state.raw = window.__EMBEDDED_ROWS__;
+    state.deps = aggregateRows(state.processed, 'Подразделение');
+    state.regs = aggregateRows(state.processed, 'Регион');
+    if(window.__EMBEDDED_FILTERS__){
+      const f = window.__EMBEDDED_FILTERS__;
+      if(f.threshold) $('threshold').value = f.threshold;
+      if(f.month) $('reportMonth').value = f.month;
+      $('fileInfo').textContent = 'Открыт готовый HTML-отчет со встроенными данными';
+    }
+    updateFilters();
+  }
+})();
+renderAll();
+</script>
+</body>
+</html>
